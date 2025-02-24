@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const TOKEN_KEY = 'user-auth-code';
+
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
   headers: {
@@ -11,7 +13,7 @@ const api = axios.create({
 // Add a request interceptor to add the auth token to all requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -43,16 +45,16 @@ api.interceptors.response.use(
         });
 
         const { access } = response.data;
-        localStorage.setItem('accessToken', access);
+        localStorage.setItem(TOKEN_KEY, access);
 
         originalRequest.headers.Authorization = `Bearer ${access}`;
         return api(originalRequest);
       } catch (refreshError) {
         // If refresh token is also expired, clear tokens and redirect to login
-        localStorage.removeItem('accessToken');
+        localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        window.location.href = '/';
         return Promise.reject(refreshError);
       }
     }

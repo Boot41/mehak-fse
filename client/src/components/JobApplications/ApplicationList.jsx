@@ -1,22 +1,30 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useApi } from '../../hooks/useApi';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Plus } from 'lucide-react';
 import ApplicationRow from './ApplicationRow';
 import NewApplicationForm from './NewApplicationForm';
-import './styles.css';
+import { mockApplications } from '../../data/mockApplications';
 
 const ApplicationList = () => {
   const [applications, setApplications] = useState([]);
-  const { request, loading, error } = useApi();
-  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showNewForm, setShowNewForm] = useState(false);
 
+  // Simulate API fetch with mock data
   const fetchApplications = useCallback(async () => {
     try {
-      const data = await request('/applications/');
-      setApplications(data.results || []);
+      setLoading(true);
+      setError(null);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setApplications(mockApplications);
     } catch (error) {
       console.error('Failed to fetch applications:', error);
+      setError('Failed to load applications. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  }, [request]);
+  }, []);
 
   useEffect(() => {
     fetchApplications();
@@ -24,75 +32,87 @@ const ApplicationList = () => {
 
   const handleApplicationSubmit = useCallback(async (newApplication) => {
     try {
-      await request('/applications/', {
-        method: 'POST',
-        body: JSON.stringify(newApplication),
-      });
-      await fetchApplications();
-      setShowForm(false);
+      setLoading(true);
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Add new application to the list with a generated ID
+      const applicationWithId = {
+        ...newApplication,
+        id: Date.now(), // Use timestamp as temporary ID
+        date: new Date().toISOString().split('T')[0],
+        status: 'Applied'
+      };
+      
+      setApplications(prev => [applicationWithId, ...prev]);
+      setShowNewForm(false);
     } catch (error) {
-      console.error('Failed to create application:', error);
+      console.error('Failed to add application:', error);
+      setError('Failed to add application. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  }, [request, fetchApplications]);
-
-  const toggleForm = useCallback(() => {
-    setShowForm(prev => !prev);
   }, []);
 
-  if (loading && !applications.length) {
-    return <div className="loading" role="status">Loading applications...</div>;
+  if (loading && applications.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
 
-  if (error && !applications.length) {
+  if (error) {
     return (
-      <div className="error" role="alert">
-        Error: {error}
+      <div className="text-center py-12">
+        <p className="text-red-600">{error}</p>
+        <button
+          onClick={fetchApplications}
+          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="applications-container">
-      <div className="header">
-        <h1>Job Applications</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Recent Applications ({applications.length})
+        </h2>
         <button
-          className="new-application-button"
-          onClick={toggleForm}
-          aria-label="Create New Application"
+          onClick={() => setShowNewForm(true)}
+          className="flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
         >
+          <Plus className="w-4 h-4 mr-2" />
           New Application
         </button>
       </div>
 
-      {showForm && (
+      {showNewForm && (
         <NewApplicationForm
           onSubmit={handleApplicationSubmit}
-          onCancel={toggleForm}
+          onCancel={() => setShowNewForm(false)}
+          loading={loading}
         />
       )}
 
-      {applications.length > 0 ? (
-        <div className="applications-table" role="table">
-          <div className="table-header" role="row">
-            <div role="columnheader">Applicant Name</div>
-            <div role="columnheader">Job Title</div>
-            <div role="columnheader">Company</div>
-            <div role="columnheader">Status</div>
-            <div role="columnheader">Actions</div>
+      <div className="bg-white shadow-sm rounded-lg divide-y divide-gray-200">
+        {applications.map((application) => (
+          <ApplicationRow
+            key={application.id}
+            application={application}
+          />
+        ))}
+        
+        {applications.length === 0 && !loading && (
+          <div className="text-center py-12 text-gray-500">
+            No applications found. Add your first application!
           </div>
-          {applications.map((application) => (
-            <ApplicationRow
-              key={application.id}
-              application={application}
-              onUpdate={fetchApplications}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="no-applications" role="status">
-          No job applications found. Create one to get started!
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

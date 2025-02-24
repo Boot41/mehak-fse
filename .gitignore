@@ -29,10 +29,28 @@ ENV/
 *.sqlite3
 media/
 static/
-server/credentials.json
+server/client_secrets.json
 
 # Node/React
-node_modules/
+node_modules/# Sensitive files
+server/client_secrets.json
+server/credentials.json
+server/token.json
+server/oauth_settings.json
+.env
+**/.env
+**/client_secret*.json
+**/credentials*.json
+**/token*.json
+**/oauth*.json
+
+# Additional security
+**/*.pem
+**/*.key
+**/*.crt
+**/secrets.*
+
+# React build files
 /client/dist
 /client/build
 .npm

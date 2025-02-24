@@ -1,10 +1,11 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import auth from '../services/auth';
 
 const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('user-auth-code');
+  const user = auth.getUser();
   
-  if (!token) {
+  if (!user || !user.id) {
     return <Navigate to="/" replace />;
   }
 

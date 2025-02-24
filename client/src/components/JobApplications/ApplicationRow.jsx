@@ -1,71 +1,61 @@
-import React, { useState, useCallback } from 'react';
-import { useApi } from '../../hooks/useApi';
-import { STATUS_COLORS, STATUS_OPTIONS } from '../../constants/applicationConstants';
-import './styles.css';
+import React from 'react';
+import { MapPin, Building, Calendar } from 'lucide-react';
 
-const ApplicationRow = ({ application, onUpdate }) => {
-  const [expanded, setExpanded] = useState(false);
-  const { request, loading } = useApi();
+const getStatusColor = (status) => {
+  switch (status.toLowerCase()) {
+    case 'applied':
+      return 'bg-blue-100 text-blue-800';
+    case 'interview':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'offer':
+      return 'bg-green-100 text-green-800';
+    case 'rejected':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
 
-  const handleStatusChange = useCallback(async (newStatus) => {
-    try {
-      await request(`/applications/${application.id}/`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: newStatus }),
-      });
-      onUpdate();
-    } catch (error) {
-      console.error('Failed to update status:', error);
-    }
-  }, [application.id, request, onUpdate]);
-
-  const toggleExpanded = useCallback(() => {
-    setExpanded(prev => !prev);
-  }, []);
-
-  const formatDate = useCallback((dateString) => {
-    return new Date(dateString).toLocaleDateString();
-  }, []);
+const ApplicationRow = ({ application }) => {
+  const statusClass = getStatusColor(application.status);
 
   return (
-    <div className="application-row">
-      <div className="application-summary">
-        <div>{application.applicant_name}</div>
-        <div>{application.job_title}</div>
-        <div>{application.company_name}</div>
-        <div>
-          <select
-            value={application.status}
-            onChange={(e) => handleStatusChange(e.target.value)}
-            style={{ backgroundColor: STATUS_COLORS[application.status] }}
-            disabled={loading}
-            aria-label="Application Status"
-          >
-            {STATUS_OPTIONS.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          className="view-details-button"
-          onClick={toggleExpanded}
-          aria-expanded={expanded}
-        >
-          {expanded ? 'Hide Details' : 'View Details'}
-        </button>
-      </div>
-      {expanded && (
-        <div className="application-details">
-          <h3>Email Content:</h3>
-          <pre>{application.email_content}</pre>
-          <div className="details-footer">
-            <div>Created: {formatDate(application.created_at)}</div>
-            <div>Updated: {formatDate(application.updated_at)}</div>
+    <div className="p-4 hover:bg-gray-50">
+      <div className="flex justify-between items-start">
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <h3 className="text-lg font-medium text-gray-900">
+              {application.position}
+            </h3>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}`}>
+              {application.status}
+            </span>
           </div>
+          
+          <div className="flex items-center space-x-4 text-sm text-gray-500">
+            <div className="flex items-center">
+              <Building className="w-4 h-4 mr-1" />
+              {application.company}
+            </div>
+            {application.location && (
+              <div className="flex items-center">
+                <MapPin className="w-4 h-4 mr-1" />
+                {application.location}
+              </div>
+            )}
+            <div className="flex items-center">
+              <Calendar className="w-4 h-4 mr-1" />
+              {application.date}
+            </div>
+          </div>
+
+          {application.description && (
+            <p className="text-sm text-gray-600 mt-2">
+              {application.description}
+            </p>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

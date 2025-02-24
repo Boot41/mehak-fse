@@ -1,35 +1,51 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
 import { Mail } from 'lucide-react';
 import useLoadingState from '../hooks/useLoadingState';
+import auth from '../services/auth';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const { loading, error, withLoading } = useLoadingState();
+  const { loading, error, setError } = useLoadingState();
+
+  // Only check once on mount
+  useEffect(() => {
+    const storedUser = auth.getUser();
+    const token = auth.getToken();
+    // Only redirect if we have both user data and token
+    if (storedUser?.id && token) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, []); // Empty dependency array - only run once on mount
 
   const login = useGoogleLogin({
-    onSuccess: (response) => {
-      console.log('Google OAuth Success:', response);
-      // Store the access token in localStorage
-      localStorage.setItem('user-auth-code', response.access_token);
-      // Navigate to dashboard after successful login
-      navigate('/dashboard');
+    onSuccess: async (response) => {
+      try {
+        // Store the access token
+        auth.setToken(response.access_token);
+        
+        // Get user profile using the stored token
+        await auth.getUserProfile();
+        
+        // Navigate to dashboard after successful login
+        navigate('/dashboard', { replace: true });
+      } catch (error) {
+        console.error('Failed to complete login:', error);
+        setError('Failed to complete login. Please try again.');
+        auth.logout();
+      }
     },
     onError: (error) => {
       console.error('Google OAuth Error:', error);
+      setError('Failed to connect with Google. Please try again.');
     },
     scope: 'email profile https://www.googleapis.com/auth/gmail.readonly'
   });
 
-  const handleGmailConnect = async () => {
-    try {
-      await withLoading(async () => {
-        login();
-      });
-    } catch (error) {
-      console.error('Gmail connect error:', error);
-    }
+  const handleGmailConnect = () => {
+    setError(null);
+    login();
   };
 
   return (

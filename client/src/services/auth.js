@@ -1,9 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000/api';
-
-// Simple storage keys
-const AUTH_TOKEN_KEY = 'user-auth-code';
+const TOKEN_KEY = 'user-auth-code';
 const USER_KEY = 'user_data';
 
 // Create axios instance with default config
@@ -17,7 +15,7 @@ const api = axios.create({
 // Add interceptor to include auth token in requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,9 +27,19 @@ api.interceptors.request.use(
 );
 
 const auth = {
+  // Store access token
+  setToken: (token) => {
+    localStorage.setItem(TOKEN_KEY, token);
+  },
+
   // Get current auth token
   getToken: () => {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
+    return localStorage.getItem(TOKEN_KEY);
+  },
+
+  // Store user data
+  setUser: (userData) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
   },
 
   // Get current user data
@@ -42,20 +50,20 @@ const auth = {
 
   // Check if user is authenticated
   isAuthenticated: () => {
-    return !!localStorage.getItem(AUTH_TOKEN_KEY);
+    return !!localStorage.getItem(TOKEN_KEY);
   },
 
   // Clear auth data
   logout: () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(user_data);
     delete api.defaults.headers.common['Authorization'];
   },
 
   // Get user profile using the access token
   getUserProfile: async () => {
     try {
-      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      const token = localStorage.getItem(TOKEN_KEY);
       if (!token) {
         throw new Error('No authentication token found');
       }
@@ -80,9 +88,13 @@ const auth = {
       return userData;
     } catch (error) {
       console.error('Failed to get user profile:', error);
+      auth.logout(); // Clear invalid auth state
       throw error;
     }
   }
 };
 
 export default auth;
+
+// Export the configured axios instance
+export { api };
