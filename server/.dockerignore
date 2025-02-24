@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Python
+*.pyc
+__pycache__
+*.pyo
+*.pyd
+.Python
+env
+venv
+.env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# IDEs and editors
+.idea
+.vscode
+*.swp
+*.swo
+
+# Project specific
+media/
+static/
+*.sqlite3
+Dockerfile
+docker-compose.yml
+README.md
+
+# System Files
+.DS_Store
+Thumbs.db
