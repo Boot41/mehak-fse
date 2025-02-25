@@ -1,0 +1,41 @@
+Django==5.0.2
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+psycopg2-binary==2.9.10
+django-cors-headers==4.3.1
+google-auth-oauthlib==1.0.0
+google-auth-httplib2==0.1.0
+google-api-python-client==2.86.0
+beautifulsoup4==4.12.2
+html5lib==1.1
+django-filter==23.3
+pytest==8.3.4
+pytest-django==4.10.0
+python-dateutil==2.8.2
+pytz==2024.1
+requests==2.31.0
+urllib3==2.1.0
+whitenoise==6.6.0
+django-environ==0.11.2
+gunicorn==21.2.0
+
+# Database and caching
+redis==5.0.1
+django-redis==5.4.0
+
+# OAuth and authentication
+oauthlib==3.2.2
+python-jose==3.3.0
+
+# NLP and parsing dependencies
+spacy>=3.0.0
+html2text>=2020.1.16
+openai>=0.27.0
+
+# Google API Client
+google-auth-oauthlib==1.0.0
+google-auth-httplib2==0.1.0
+google-api-python-client==2.86.0
+
+# Download spaCy model
+# python -m spacy download en_core_web_sm
